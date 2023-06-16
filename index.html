@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>RIKEDU</title>
+    <link rel="icon" type="image/png" sizes="56x56" href="logo.png" />
+    <style>
+      @import url("https://fonts.googleapis.com/css?family=Roboto+Mono:100");
+      ::-webkit-scrollbar {
+        width: 10px;
+        height: 10px;
+      }
+      ::-webkit-scrollbar-track {
+        background: #212121;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #fff;
+        border: 2px solid #212121;
+        border-radius: 5px;
+      }
+      html,
+      body {
+        font-family: "Roboto Mono", monospace;
+        background: #212121;
+        height: 100%;
+      }
+
+      .container {
+        height: 100%;
+        width: 100%;
+        justify-content: center;
+        align-items: center;
+        display: flex;
+        flex-direction: column;
+      }
+
+      .text {
+        font-weight: 100;
+        font-size: 20px;
+        color: #fafafa;
+      }
+      .logo {
+        min-width: 300px;
+        /* min-height: 300px; */
+      }
+
+      .logo img {
+        width: 300px;
+        /* min-height: 300px; */
+      }
+
+      .dud {
+        color: #757575;
+      }
+
+      @media only screen and (max-width: 900px) {
+        .text {
+          font-size: 14px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo"><img src="/logo.png""></div>
+      <div class="text"></div>
+    </div>
+  </body>
+  <script>
+    class TextScramble {
+      constructor(el) {
+        this.el = el;
+        this.chars = "!<>-_\\/[]{}—=+*^?#________";
+        this.update = this.update.bind(this);
+      }
+
+      setText(newText) {
+        const oldText = this.el.innerText;
+        const length = Math.max(oldText.length, newText.length);
+        const promise = new Promise((resolve) => (this.resolve = resolve));
+        this.queue = [];
+        for (let i = 0; i < length; i++) {
+          const from = oldText[i] || "";
+          const to = newText[i] || "";
+          const start = Math.floor(Math.random() * 40);
+          const end = start + Math.floor(Math.random() * 40);
+          this.queue.push({ from, to, start, end });
+        }
+        cancelAnimationFrame(this.frameRequest);
+        this.frame = 0;
+        this.update();
+        return promise;
+      }
+
+      update() {
+        let output = "";
+        let complete = 0;
+        for (let i = 0, n = this.queue.length; i < n; i++) {
+          let { from, to, start, end, char } = this.queue[i];
+          if (this.frame >= end) {
+            complete++;
+            output += to;
+          } else if (this.frame >= start) {
+            if (!char || Math.random() < 0.28) {
+              char = this.randomChar();
+              this.queue[i].char = char;
+            }
+            output += `<span class="dud">${char}</span>`;
+          } else {
+            output += from;
+          }
+        }
+        this.el.innerHTML = output;
+        if (complete === this.queue.length) {
+          this.resolve();
+        } else {
+          this.frameRequest = requestAnimationFrame(this.update);
+          this.frame++;
+        }
+      }
+
+      randomChar() {
+        return this.chars[Math.floor(Math.random() * this.chars.length)];
+      }
+    }
+
+    // ——————————————————————————————————————————————————
+    // Example
+    // ——————————————————————————————————————————————————
+
+    const phrases = [
+      "Update student academic and personal information",
+      "View classroom and school information",
+      "Manage student behavior records",
+      "Send and receive notifications from teachers",
+      "Secure login and user authentication",
+      "Multiple user roles: parent, student",
+    ];
+
+    const el = document.querySelector(".text");
+    const fx = new TextScramble(el);
+
+    let counter = 0;
+    const next = () => {
+      fx.setText(phrases[counter]).then(() => {
+        setTimeout(next, 2000);
+      });
+      counter = (counter + 1) % phrases.length;
+    };
+
+    next();
+  </script>
+</html>
